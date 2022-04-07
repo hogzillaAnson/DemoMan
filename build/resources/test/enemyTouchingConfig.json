@@ -1,0 +1,9 @@
+{
+  "levels": [
+    {
+      "path": "src/test/resources/enemyTouchingMap.txt",
+      "time": 180
+    }
+  ],
+  "lives": 2
+}

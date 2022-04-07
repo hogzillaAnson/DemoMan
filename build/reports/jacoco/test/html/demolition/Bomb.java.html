@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Bomb.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Demolition</a> &gt; <a href="index.source.html" class="el_package">demolition</a> &gt; <span class="el_source">Bomb.java</span></div><h1>Bomb.java</h1><pre class="source lang-java linenums">package demolition;
+
+import processing.core.PImage;
+
+/**
+ * Represents a bomb in the game that ticks and explodes at a particular grid space
+ */
+public class Bomb implements Drawable {
+
+    /** The number of seconds between frames */
+    public static final double SECONDSBETWEENFRAMES = 0.25;
+
+    /** The number of frames in the bomb animation cycle */
+    public static final int FRAMES = 8;
+
+    /** Duration in seconds of the bomb ticking sequence */
+    public static final int SECONDS = 2;
+
+    public int x;
+    public int y;
+
+    /** Keeps track of the time since the bomb was placed */
+    public int timer;
+
+    /** The current sprite of the bomb */
+    public PImage sprite;
+
+    /** True if the bomb has exploded. Stops the exploded bomb from being drawn or killing the player */
+    public boolean exploded;
+
+    /** The animation cycle for the bomb */
+    public AnimationCycle animationCycle;
+    
+    /**
+     * Constructor for bomb.
+     * @param x the x coordinate (column) of the bomb
+     * @param y the y coordinate (row) of the bomb
+     * @param app the app from which the method is being called
+     */
+<span class="fc" id="L40">    public Bomb(int x, int y, App app) {</span>
+
+<span class="fc" id="L42">        this.x = x;</span>
+<span class="fc" id="L43">        this.y = y;</span>
+<span class="fc" id="L44">        this.timer = 0;</span>
+<span class="fc" id="L45">        this.exploded = false;</span>
+        
+<span class="fc" id="L47">        PImage[] sprites = new PImage[FRAMES];</span>
+
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        for (int i = 1; i &lt; FRAMES + 1; i ++) {</span>
+<span class="fc" id="L50">            sprites[i-1] = app.loadImage(String.format(&quot;src/main/resources/bomb/bomb%d.png&quot;, i));</span>
+        }
+
+        //animationCycle = new AnimationCycle(sprites, SECONDSBETWEENFRAMES);
+<span class="fc" id="L54">        animationCycle = new AnimationCycle(&quot;bomb&quot;, &quot;bomb&quot;, FRAMES, SECONDSBETWEENFRAMES, app);</span>
+<span class="fc" id="L55">        sprite = animationCycle.currentSprite;</span>
+<span class="fc" id="L56">    }</span>
+
+    /**
+     * Updates the bomb object every frame. If more than 2 seconds worth of frames have elapsed, the bomb explodes,
+     * triggering an explosion to be added at the same coordinates.
+     * @param app the app calling the method
+     */
+    public void tick(App app) {
+
+<span class="fc" id="L65">        timer ++;</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (timer &gt; SECONDS * App.FPS) {</span>
+<span class="fc" id="L67">            exploded = true;</span>
+<span class="fc" id="L68">            app.addExplosion(x, y);</span>
+        } else {
+<span class="fc" id="L70">            animationCycle.tick();</span>
+<span class="fc" id="L71">            sprite = animationCycle.currentSprite;</span>
+        }
+<span class="fc" id="L73">    }</span>
+
+    /**
+     * Draws the bomb object to the screen
+     * @param app the app calling the method
+     */
+    public void draw(App app) {
+<span class="fc" id="L80">        drawToGrid(sprite, x, y, 0, app);</span>
+<span class="fc" id="L81">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

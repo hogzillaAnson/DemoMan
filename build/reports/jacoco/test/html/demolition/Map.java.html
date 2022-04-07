@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Map.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Demolition</a> &gt; <a href="index.source.html" class="el_package">demolition</a> &gt; <span class="el_source">Map.java</span></div><h1>Map.java</h1><pre class="source lang-java linenums">package demolition;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.ArrayList;
+
+/**
+ * Represents the map of the game. Includes attributes and methods to draw the map each frame
+ */
+public class Map implements Drawable {
+
+    /** Number of columns in the map, by default 15*/
+    public static final int COLS = 15;
+
+    /** Number of rows in the map, by default 13*/
+    public static final int ROWS = 13;
+    
+    /** 2D array of tiles that make up the map */
+    public Tile[][] mapTiles;
+
+    /** True if the map is hidden to display the win or game over screens. */
+    public boolean hidden;
+
+    /**
+     * Map constructor, initialising the 2D array of tiles.
+     */
+<span class="fc" id="L27">    public Map() {</span>
+<span class="fc" id="L28">        this.mapTiles = new Tile[ROWS][COLS];</span>
+<span class="fc" id="L29">        this.hidden = false;</span>
+<span class="fc" id="L30">    }</span>
+
+    /**
+     * Static method that reads the data from a map file into the map object in an existing app
+     * Handles all errors relating to the map file validity
+     * @param path map file path
+     * @param lives number of lives for bomb guy to have
+     * @param app the app whose map is being read into
+     */
+    public static void readMapFile(String path, int lives, App app) {
+
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        if (path == null) {</span>
+<span class="nc" id="L42">            return;</span>
+        }
+
+<span class="fc" id="L45">        File mapFile = new File(path);</span>
+<span class="fc" id="L46">        boolean playerDefined = false;</span>
+
+<span class="fc" id="L48">        int topBoundary = -1;</span>
+<span class="fc" id="L49">        int bottomBoundary = -1;</span>
+
+<span class="fc" id="L51">        boolean hasTopBoundary = false;</span>
+<span class="fc" id="L52">        boolean hasBottomBoundary = false;</span>
+<span class="fc" id="L53">        boolean hasLeftBoundary = false;</span>
+<span class="fc" id="L54">        boolean hasRightBoundary = false;</span>
+
+<span class="fc" id="L56">        Tile[][] mapTiles = new Tile[ROWS][COLS];</span>
+<span class="fc" id="L57">        ArrayList&lt;Enemy&gt; enemies = new ArrayList&lt;Enemy&gt;();</span>
+<span class="fc" id="L58">        BombGuy bombGuy = null;</span>
+
+        try {
+<span class="fc" id="L61">            Scanner s = new Scanner(mapFile);</span>
+<span class="fc" id="L62">            String line = null;</span>
+<span class="fc" id="L63">            int i = 0;</span>
+
+<span class="fc bfc" id="L65" title="All 4 branches covered.">            while (i &lt; Map.ROWS &amp;&amp; s.hasNextLine()) {</span>
+<span class="fc" id="L66">                line = s.nextLine();</span>
+                
+<span class="fc bfc" id="L68" title="All 2 branches covered.">                if (line.length() != Map.COLS) {</span>
+<span class="fc" id="L69">                    System.out.println(&quot;Map file doesn't have 15 columns.&quot;);</span>
+<span class="fc" id="L70">                    s.close();</span>
+<span class="fc" id="L71">                    return;</span>
+                }
+
+<span class="fc" id="L74">                boolean lineIsBoundary = true;</span>
+
+<span class="fc bfc" id="L76" title="All 2 branches covered.">                for (int j = 0; j &lt; Map.COLS; j ++) {</span>
+
+<span class="fc bfc" id="L78" title="All 4 branches covered.">                    lineIsBoundary = lineIsBoundary &amp;&amp; line.charAt(j) == 'W';</span>
+<span class="fc" id="L79">                    mapTiles[i][j] = new Tile(Tile.charToTile(line.charAt(j)));</span>
+                    // consider keeping track of which entities have been defined with booleans
+                    
+<span class="fc bfc" id="L82" title="All 2 branches covered.">                    if (line.charAt(j) == 'P') {</span>
+                        
+<span class="fc bfc" id="L84" title="All 2 branches covered.">                        if (!playerDefined) {</span>
+<span class="fc" id="L85">                            bombGuy = new BombGuy(j, i, lives, app); // need to set lives</span>
+<span class="fc" id="L86">                            playerDefined = true;</span>
+
+                        } else {
+
+<span class="fc" id="L90">                            System.out.println(&quot;Cannot define player more than once.&quot;);</span>
+<span class="fc" id="L91">                            s.close();</span>
+<span class="fc" id="L92">                            return;</span>
+                        }
+
+<span class="fc bfc" id="L95" title="All 2 branches covered.">                    } else if (line.charAt(j) == 'R') {</span>
+<span class="fc" id="L96">                        enemies.add(new RedEnemy(j, i, app));</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">                    } else if (line.charAt(j) == 'Y') {</span>
+<span class="fc" id="L98">                        enemies.add(new YellowEnemy(j, i, app));</span>
+                    }
+                }
+
+<span class="fc bfc" id="L102" title="All 2 branches covered.">                if (lineIsBoundary) {</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">                    if (hasTopBoundary) {</span>
+<span class="fc" id="L104">                        hasBottomBoundary = true;</span>
+<span class="fc" id="L105">                        bottomBoundary = i;</span>
+                    } else {
+<span class="fc" id="L107">                        hasTopBoundary = true;</span>
+<span class="fc" id="L108">                        topBoundary = i;</span>
+                    }
+                }
+<span class="fc" id="L111">                i ++;</span>
+<span class="fc" id="L112">            }            </span>
+            
+<span class="fc bfc" id="L114" title="All 2 branches covered.">            if (i != Map.ROWS) {</span>
+<span class="fc" id="L115">                System.out.println(&quot;Map file doesn't have enough rows.&quot;);</span>
+<span class="fc" id="L116">                s.close();</span>
+<span class="fc" id="L117">                return;</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">            } else if (s.hasNext()) {</span>
+<span class="fc" id="L119">                System.out.println(&quot;Map file has too many rows.&quot;);</span>
+<span class="fc" id="L120">                s.close();</span>
+<span class="fc" id="L121">                return;</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">            } else if (!playerDefined) {</span>
+<span class="fc" id="L123">                System.out.println(&quot;No player is defined in level.&quot;);</span>
+<span class="fc" id="L124">                s.close();</span>
+<span class="fc" id="L125">                return;</span>
+            }
+
+<span class="pc bpc" id="L128" title="1 of 4 branches missed.">            if (!(hasTopBoundary &amp;&amp; hasBottomBoundary)) {</span>
+<span class="fc" id="L129">                System.out.println(&quot;Map has no horizontal boundary walls.&quot;);</span>
+<span class="fc" id="L130">                s.close();</span>
+<span class="fc" id="L131">                return;</span>
+            }
+            // check whether vertical boundaries exist
+            boolean lineIsVerticalBoundary;
+
+<span class="fc bfc" id="L136" title="All 2 branches covered.">            for (int j = 0; j &lt; COLS; j++) {</span>
+<span class="fc" id="L137">                lineIsVerticalBoundary = true;</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">                for (int k = topBoundary; k &lt;= bottomBoundary; k++) {</span>
+<span class="fc bfc" id="L139" title="All 4 branches covered.">                    lineIsVerticalBoundary = lineIsVerticalBoundary &amp;&amp; (mapTiles[k][j].tileType == TileType.Solid);</span>
+                }
+
+<span class="fc bfc" id="L142" title="All 2 branches covered.">                if (lineIsVerticalBoundary) {</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">                    if (hasLeftBoundary) {</span>
+<span class="fc" id="L144">                        hasRightBoundary = true;</span>
+                    } else {
+<span class="fc" id="L146">                        hasLeftBoundary = true;</span>
+                    }
+                }
+            }
+
+<span class="pc bpc" id="L151" title="1 of 4 branches missed.">            if (!(hasLeftBoundary &amp;&amp; hasRightBoundary)) {</span>
+<span class="fc" id="L152">                System.out.println(&quot;Map has no vertical boundary walls.&quot;);</span>
+            } else {
+<span class="fc" id="L154">                app.map.mapTiles = mapTiles;</span>
+<span class="fc" id="L155">                app.bombGuy = bombGuy;</span>
+<span class="fc" id="L156">                app.enemies = enemies;</span>
+            }
+
+<span class="fc" id="L159">            s.close();</span>
+<span class="fc" id="L160">            return;</span>
+
+<span class="fc" id="L162">        } catch (FileNotFoundException e) {</span>
+<span class="fc" id="L163">            System.out.println(&quot;No such map file.&quot;);</span>
+<span class="fc" id="L164">            return;</span>
+        }
+    }
+
+    /**
+    * Draws each tile of the map to the screen, accounting for the vertical offset at the top
+    * @param app the app calling the method
+    */
+    public void draw(App app) {
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        for (int i = 0; i &lt; ROWS; i++) {</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">            for (int j = 0; j &lt; COLS; j++) {</span>
+<span class="fc" id="L175">                drawToGrid(mapTiles[i][j].tileGraphic(app), j, i, 0, app);</span>
+            }
+        }
+<span class="fc" id="L178">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

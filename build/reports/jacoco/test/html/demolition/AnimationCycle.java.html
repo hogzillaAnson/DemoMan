@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnimationCycle.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Demolition</a> &gt; <a href="index.source.html" class="el_package">demolition</a> &gt; <span class="el_source">AnimationCycle.java</span></div><h1>AnimationCycle.java</h1><pre class="source lang-java linenums">package demolition;
+
+import processing.core.PImage;
+
+/**
+ * This class represents an animation cycle of multiple PImage sprites that updates a set number of times per second
+ */
+public class AnimationCycle {
+
+    /** The array of sprites to loop through */
+    public PImage[] sprites;
+
+    /** The index of the current sprite */
+    public int currentSpriteIndex;
+    
+    /** The current sprite being displayed */
+    public PImage currentSprite;
+    
+    /** The number of seconds between frames */
+    public double increment;
+
+    /** The number of sprites in the animation cycle */
+    public int frames;
+
+    /** Keeps track of the time that has elapsed since the previous sprite */
+    public int timer;
+
+    /**
+     * Constructor for the animation cycle, reading in sprites from the resources folder
+     * @param entity The thing whose animation cycle it is i.e the sub-directory name in main
+     * @param filePrefix The part of the filename common to all of the sprite files e.g bomb for bomb1,...,bomb8
+     * @param frames How many frames are in the animation cycle
+     * @param increment How many seconds are between frames
+     * @param app The app
+     */
+<span class="fc" id="L36">    public AnimationCycle(String entity, String filePrefix, int frames, double increment, App app) {</span>
+        
+<span class="fc" id="L38">        this.sprites = new PImage[frames];</span>
+<span class="fc" id="L39">        this.increment = increment;</span>
+
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        for (int spriteNumber = 1; spriteNumber &lt; frames + 1; spriteNumber++) {</span>
+<span class="fc" id="L42">            sprites[spriteNumber-1] = app.loadImage(String.format(&quot;src/main/resources/%s/%s%d.png&quot;, entity, filePrefix, spriteNumber));</span>
+        }
+
+<span class="fc" id="L45">        this.currentSpriteIndex = 0;</span>
+<span class="fc" id="L46">        this.currentSprite = sprites[currentSpriteIndex];</span>
+<span class="fc" id="L47">        this.frames = sprites.length;</span>
+<span class="fc" id="L48">    }</span>
+
+    /**
+     * Updates the current sprite that is being displayed, depending on whether the time increment has elapsed since the last sprite
+     */
+    public void tick() {
+
+<span class="fc" id="L55">        timer ++;</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        if (timer &gt; increment * App.FPS) {</span>
+            // Moves to the next sprite in the list modulo the number of frames
+<span class="fc" id="L58">            currentSprite = sprites[currentSpriteIndex++ % frames];</span>
+<span class="fc" id="L59">            timer = 0;</span>
+        }
+<span class="fc" id="L61">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

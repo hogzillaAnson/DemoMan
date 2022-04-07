@@ -1,0 +1,9 @@
+{
+  "levels": [
+    {
+      "path": "src/test/resources/noVerticalMapBoundary.txt",
+      "time": 10
+    }
+  ],
+  "lives": 1
+}

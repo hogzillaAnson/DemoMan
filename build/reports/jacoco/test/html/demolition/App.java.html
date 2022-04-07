@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>App.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Demolition</a> &gt; <a href="index.source.html" class="el_package">demolition</a> &gt; <span class="el_source">App.java</span></div><h1>App.java</h1><pre class="source lang-java linenums">package demolition;
+
+import processing.core.PApplet;
+import processing.core.PFont;
+import processing.core.PImage;
+import processing.data.JSONObject;
+import processing.data.JSONArray;
+
+import java.util.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+
+/**
+ * Represents the game executable. Aggregates from other classes
+ */
+public class App extends PApplet {
+
+    /** Width of the game window in pixels */
+    public static final int WIDTH = 480;
+
+    /** Height of the game window in pixels */
+    public static final int HEIGHT = 480;
+
+    /** The height of the UI bar at the top */
+    public static final int VERTICALOFFSET = 64;
+
+    /** The font size */
+    public static final int FONTSIZE = 20;
+
+    /** The framerate */
+    public static final int FPS = 60;
+
+    /** The map being played */
+    public Map map;
+
+    /** The player object */
+    public BombGuy bombGuy;
+    
+    /** The path to the config file being read from */
+    public String configFile;
+    
+    /** The index of the current level */
+<span class="fc" id="L43">    public int levelIndex = 0;</span>
+
+    /** The current level being played */
+    public Level currentLevel;
+
+    /** True when the UI should be shown, false otherwise */
+<span class="fc" id="L49">    public boolean showUI = true;</span>
+
+    /** The enemies (red + yellow) present in the level */
+    public ArrayList&lt;Enemy&gt; enemies;
+
+    /** The bombs present in the level */
+    public ArrayList&lt;Bomb&gt; bombs;
+    
+    /** The explosions present in the level */
+    public ArrayList&lt;Explosion&gt; explosions;
+
+    /** The levels that will be played */
+<span class="fc" id="L61">    public ArrayList&lt;Level&gt; levels = new ArrayList&lt;Level&gt;();</span>
+
+    /** HashMap of keyCodes marking whether they are being held down at a given moment */
+<span class="fc" id="L64">    public HashMap&lt;Integer, Boolean&gt; keysHeldDown = new HashMap&lt;Integer, Boolean&gt;();</span>
+    
+    /** All the images loaded during setup */
+<span class="fc" id="L67">    public HashMap&lt;String, PImage&gt; images = new HashMap&lt;String, PImage&gt;();</span>
+
+    /**
+     * Sets the config file for the app to read from.
+     * @param configFile The path of the config file
+     * @throws NullPointerException when the path is null
+     */
+    public void setConfig(String configFile) {
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (configFile != null) {</span>
+<span class="fc" id="L76">            this.configFile = configFile;</span>
+        } else {
+<span class="nc" id="L78">            throw new NullPointerException(&quot;Can't have null config path&quot;);</span>
+        }
+<span class="fc" id="L80">    }</span>
+
+    /**
+     * Constructor for App. Initialises the map, list of enemies, bombs and explosions
+     */
+<span class="fc" id="L85">    public App() {</span>
+<span class="fc" id="L86">        this.map = new Map();</span>
+<span class="fc" id="L87">        this.enemies = new ArrayList&lt;Enemy&gt;();</span>
+<span class="fc" id="L88">        this.bombs = new ArrayList&lt;Bomb&gt;();</span>
+<span class="fc" id="L89">        this.explosions = new ArrayList&lt;Explosion&gt;();</span>
+<span class="fc" id="L90">        this.configFile = &quot;config.json&quot;; // default config, can be changed later (but before setup())</span>
+<span class="fc" id="L91">    }</span>
+
+    /**
+     * Adds a new Explosion object to the list of explosions
+     * @param x the x coordinate of the centre of the explosion
+     * @param y the y coordinate of the centre of the explosion
+     */
+    public void addExplosion(int x, int y) {
+<span class="fc" id="L99">        explosions.add(new Explosion(x, y));</span>
+<span class="fc" id="L100">    }</span>
+
+    public void settings() {
+<span class="fc" id="L103">        size(WIDTH, HEIGHT);</span>
+<span class="fc" id="L104">    }</span>
+
+    /**
+     * Called when the player reaches the final goal tile. Hides all UI elements and displays * the YOU WIN text
+     * against an orange background.
+     */
+    public void win() {
+<span class="fc" id="L111">        hideAll();</span>
+<span class="fc" id="L112">        background(216, 128, 0);</span>
+<span class="fc" id="L113">        text(&quot;YOU WIN&quot;, 169, 250);</span>
+<span class="fc" id="L114">        noLoop();</span>
+<span class="fc" id="L115">    }</span>
+
+    /**
+     * Returns the JSONObject associated with the specified json file path.
+     * @param path the path of the json file to be read
+     * @return the JSONObject associated with path
+     */
+    public JSONObject readJSON(String path) {
+<span class="fc" id="L123">        File jsonFile = new File(path);</span>
+<span class="fc" id="L124">        String jsonString = &quot;&quot;;</span>
+
+        try {
+<span class="fc" id="L127">            Scanner scan = new Scanner(jsonFile);</span>
+
+<span class="fc bfc" id="L129" title="All 2 branches covered.">            while (scan.hasNext()) {</span>
+<span class="fc" id="L130">                jsonString += scan.next();</span>
+            }
+
+<span class="fc" id="L133">            scan.close();</span>
+<span class="fc" id="L134">            return JSONObject.parse(jsonString);</span>
+
+<span class="nc" id="L136">        } catch (FileNotFoundException e) {</span>
+
+<span class="nc" id="L138">            System.out.println(&quot;No such config file!&quot;);</span>
+<span class="nc" id="L139">            return null;</span>
+        }
+    }
+
+    /**
+     * Loads all images, fonts, levels. Sets the framerate of the game
+     */
+    public void setup() {
+
+<span class="fc" id="L148">        frameRate(FPS);</span>
+
+        // Load bomb sprites
+<span class="fc bfc" id="L151" title="All 2 branches covered.">        for (int i = 1; i &lt; 1 + Bomb.FRAMES; i ++) {</span>
+<span class="fc" id="L152">            images.put(String.format(&quot;bomb%d&quot;, i), loadImage(String.format(&quot;src/main/resources/bomb/bomb%d.png&quot;, i)));</span>
+        }
+
+        // Load tile sprites
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        for (TileType tileType : TileType.values()) {</span>
+<span class="fc" id="L157">            images.put(tileType.string, loadImage(String.format(&quot;src/main/resources/%s/%s.png&quot;, tileType.string, tileType.string)));</span>
+        }
+
+        // Load explosion sprites
+<span class="fc bfc" id="L161" title="All 2 branches covered.">        for (String string : new String[] {&quot;centre&quot;, &quot;end_bottom&quot;, &quot;end_left&quot;, &quot;end_right&quot;, &quot;end_top&quot;, &quot;horizontal&quot;, &quot;vertical&quot;}) {</span>
+<span class="fc" id="L162">            images.put(string, loadImage(String.format(&quot;src/main/resources/explosion/%s.png&quot;, string)));</span>
+        }
+
+        // Load UI icons
+<span class="fc" id="L166">        images.put(&quot;clockIcon&quot;, loadImage(&quot;src/main/resources/icons/clock.png&quot;));</span>
+<span class="fc" id="L167">        images.put(&quot;playerIcon&quot;, loadImage(&quot;src/main/resources/icons/player.png&quot;));</span>
+
+        // Load character sprites
+<span class="fc bfc" id="L170" title="All 2 branches covered.">        for (String characterName : new String[]{&quot;player&quot;, &quot;red&quot;, &quot;yellow&quot;}) {</span>
+            
+<span class="fc" id="L172">            String directory = characterName;</span>
+
+<span class="fc bfc" id="L174" title="All 2 branches covered.">            if (!characterName.equals(&quot;player&quot;)) {</span>
+<span class="fc" id="L175">                directory += &quot;_enemy&quot;;</span>
+            }
+            
+<span class="fc bfc" id="L178" title="All 2 branches covered.">            for (Direction direction : Direction.values()) {</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">                for (int i = 1; i &lt; 1 + Character.FRAMES; i ++) {</span>
+<span class="fc" id="L180">                    images.put(characterName, loadImage(String.format(&quot;src/main/resources/%s/%s_%s%d.png&quot;, directory, characterName, direction.string, i)));</span>
+                }
+            }
+        }
+
+        // load config.json
+<span class="fc" id="L186">        JSONObject config = readJSON(this.configFile);</span>
+<span class="fc" id="L187">        JSONArray levelsJSON = config.getJSONArray(&quot;levels&quot;);</span>
+
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        for (int i = 0; i &lt; levelsJSON.size(); i ++) {</span>
+            
+<span class="fc" id="L191">            JSONObject levelData = levelsJSON.getJSONObject(i);</span>
+<span class="fc" id="L192">            levels.add(new Level(levelData.getString(&quot;path&quot;), levelData.getInt(&quot;time&quot;)));</span>
+
+        }
+        
+        // Set font
+<span class="fc" id="L197">        PFont font = createFont(&quot;src/main/resources/PressStart2P-Regular.ttf&quot;, FONTSIZE);</span>
+<span class="fc" id="L198">        textFont(font);</span>
+
+        //System.out.println(&quot;there are &quot; + levels.size() + &quot;levels here&quot;);
+
+        // load the first level
+<span class="fc" id="L203">        setLevel(levelIndex, config.getInt(&quot;lives&quot;));</span>
+<span class="fc" id="L204">    }</span>
+
+    /**
+     * Sets the current level to the (levelIndex + 1)-th level, and sets the player's lives.
+     * If the levelIndex is &gt;= to the number of levels there are, the player is considered to * have won the game by reaching the goal tile of the final level.
+     * @param levelIndex the index of the level within levels
+     * @param lives the number of lives to give the player
+     */
+    public void setLevel(int levelIndex, int lives) {
+
+<span class="fc bfc" id="L214" title="All 2 branches covered.">        if (levelIndex &lt; levels.size()) {</span>
+
+<span class="fc" id="L216">            this.enemies = new ArrayList&lt;Enemy&gt;();</span>
+<span class="fc" id="L217">            this.bombs = new ArrayList&lt;Bomb&gt;();</span>
+<span class="fc" id="L218">            this.explosions = new ArrayList&lt;Explosion&gt;();</span>
+<span class="fc" id="L219">            currentLevel = levels.get(levelIndex);</span>
+<span class="fc" id="L220">            Map.readMapFile(currentLevel.path, lives, this);</span>
+
+        } else {
+<span class="fc" id="L223">            win();</span>
+        }
+<span class="fc" id="L225">    }</span>
+
+    /**
+     * Draws the game over screen. Hides UI elements and displays the GAME OVER text against
+     * an orange background. Stops the game from looping.
+     */
+    public void gameOver() {
+        
+<span class="fc" id="L233">        hideAll();</span>
+<span class="fc" id="L234">        background(216, 128, 0);</span>
+<span class="fc" id="L235">        text(&quot;GAME OVER&quot;, 152, 250);</span>
+<span class="fc" id="L236">        noLoop();</span>
+<span class="fc" id="L237">    }</span>
+
+    /**
+     * Updates all game objects: Map, Level, BombGuy, enemies, bombs, explosions
+     */
+    public void tick() {
+
+<span class="fc" id="L244">        this.currentLevel.tick();</span>
+
+<span class="fc bfc" id="L246" title="All 2 branches covered.">        if (!bombGuy.dead) {</span>
+<span class="fc" id="L247">            this.bombGuy.tick(this);</span>
+
+        } else {
+            
+<span class="fc" id="L251">            bombGuy.lives--;</span>
+
+<span class="fc bfc" id="L253" title="All 2 branches covered.">            if (bombGuy.lives &lt;= 0) {</span>
+<span class="fc" id="L254">                gameOver();</span>
+            } else {
+<span class="fc" id="L256">                setLevel(levelIndex, bombGuy.lives); // respawn the current level</span>
+<span class="fc" id="L257">                bombGuy.dead = false;</span>
+            }
+        }
+        
+<span class="fc bfc" id="L261" title="All 2 branches covered.">        for (Enemy enemy : enemies) {</span>
+<span class="fc bfc" id="L262" title="All 2 branches covered.">            if (!enemy.dead) {</span>
+<span class="fc" id="L263">                enemy.tick(this);</span>
+            }
+<span class="fc" id="L265">        }</span>
+
+<span class="fc bfc" id="L267" title="All 2 branches covered.">        for (Bomb bomb : bombs) {</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">            if (!bomb.exploded) {</span>
+<span class="fc" id="L269">                bomb.tick(this);</span>
+            }
+<span class="fc" id="L271">        }</span>
+
+<span class="fc bfc" id="L273" title="All 2 branches covered.">        for (Explosion explosion : explosions) {</span>
+<span class="fc bfc" id="L274" title="All 2 branches covered.">            if (!explosion.finished) {</span>
+<span class="fc" id="L275">                explosion.tick(this);</span>
+            }
+<span class="fc" id="L277">        }</span>
+
+<span class="pc bpc" id="L279" title="1 of 4 branches missed.">        if (currentLevel.timer &gt; currentLevel.timeLimit * FPS || bombGuy.lives == 0) {</span>
+<span class="fc" id="L280">            gameOver();</span>
+        }
+
+<span class="fc bfc" id="L283" title="All 2 branches covered.">        if (map.mapTiles[bombGuy.y][bombGuy.x].tileType == TileType.Goal) {</span>
+            //noLoop();
+<span class="fc" id="L285">            levelIndex ++;</span>
+<span class="fc" id="L286">            setLevel(levelIndex, bombGuy.lives);</span>
+            //loop();
+        }
+<span class="fc" id="L289">    }</span>
+
+    /**
+     * Adds a new bomb to the list of bombs at a particular grid coordinate
+     * @param x the x coordinate of the bomb
+     * @param y the y coordinate of the bomb
+     */
+    public void addBomb(int x, int y) {
+<span class="fc" id="L297">        this.bombs.add(new Bomb(x, y, this));</span>
+<span class="fc" id="L298">    }</span>
+    
+    /**
+     * Draws each bomb in the bombs list if they have not exploded already
+     */
+    public void drawBombs() {
+<span class="fc bfc" id="L304" title="All 2 branches covered.">        for (Bomb bomb : bombs) {</span>
+<span class="fc bfc" id="L305" title="All 2 branches covered.">            if (!bomb.exploded) {</span>
+<span class="fc" id="L306">                bomb.draw(this);</span>
+            }
+<span class="fc" id="L308">        }</span>
+<span class="fc" id="L309">    }</span>
+
+    /**
+     * Draws each explosion in the explosions list if they have not been marked finished
+     */
+    public void drawExplosions() {
+<span class="fc bfc" id="L315" title="All 2 branches covered.">        for (Explosion explosion : explosions) {</span>
+<span class="fc bfc" id="L316" title="All 2 branches covered.">            if (!explosion.finished) {</span>
+<span class="fc" id="L317">                explosion.draw(this);</span>
+            }
+<span class="fc" id="L319">        }</span>
+<span class="fc" id="L320">    }</span>
+
+    /**
+     * Draws each enemy (red and yellow) in the enemies list if they are not dead
+     */
+    public void drawEnemies() {
+<span class="fc bfc" id="L326" title="All 2 branches covered.">        for (Enemy enemy : enemies) {</span>
+<span class="fc bfc" id="L327" title="All 2 branches covered.">            if (!enemy.dead) {</span>
+<span class="fc" id="L328">                enemy.draw(this);</span>
+            }   
+<span class="fc" id="L330">        }</span>
+<span class="fc" id="L331">    }</span>
+
+    /**
+     * Hides all entities (map, player, enemies) by marking enemies as dead and bombs as 
+     * exploded.
+     */
+    public void hideAll() {
+
+<span class="fc" id="L339">        showUI = false;</span>
+<span class="fc" id="L340">        map.hidden = true;</span>
+<span class="fc" id="L341">        bombGuy.hidden = true;</span>
+
+<span class="fc bfc" id="L343" title="All 2 branches covered.">        for (Enemy enemy : enemies) {</span>
+<span class="fc" id="L344">            enemy.dead = true;</span>
+<span class="fc" id="L345">        }</span>
+<span class="fc bfc" id="L346" title="All 2 branches covered.">        for (Bomb bomb : bombs) {</span>
+<span class="fc" id="L347">            bomb.exploded = true;</span>
+<span class="fc" id="L348">        }</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">        for (Explosion explosion : explosions) {</span>
+<span class="fc" id="L350">            explosion.finished = true;</span>
+<span class="fc" id="L351">        }</span>
+<span class="fc" id="L352">    }</span>
+
+    /**
+     * Draws the UI elements at the top of the game window if the App attribute showUI is true.
+     */
+    public void drawUI() {
+
+<span class="fc bfc" id="L359" title="All 2 branches covered.">        if (showUI) {</span>
+<span class="fc" id="L360">            background(216, 128, 0); // orange background colour</span>
+<span class="fc" id="L361">            fill(0, 0, 0);</span>
+<span class="fc" id="L362">            text(String.format(&quot;%d&quot;, bombGuy.lives), 170, 43); // number of lives</span>
+<span class="fc" id="L363">            text(String.format(&quot;%d&quot;, currentLevel.timeLimit - currentLevel.timer/60), 298, 43); // time left</span>
+            
+            //text(String.format(&quot;%d %d&quot;, ui_x,ui_y), 10, 40);
+
+<span class="fc" id="L367">            this.image(images.get(&quot;playerIcon&quot;), 129, 15);</span>
+<span class="fc" id="L368">            this.image(images.get(&quot;clockIcon&quot;), 257, 15);</span>
+            
+            //this.image(loadImage(&quot;src/main/resources/icons/player.png&quot;), 129, 15);
+            //this.image(loadImage(&quot;src/main/resources/icons/clock.png&quot;), 257, 15);
+        }
+<span class="fc" id="L373">    }</span>
+
+    /**
+     * Draws the map if it is not hidden
+     */
+    public void drawMap() {
+<span class="fc bfc" id="L379" title="All 2 branches covered.">        if (!map.hidden) {</span>
+<span class="fc" id="L380">            this.map.draw(this);</span>
+        }
+<span class="fc" id="L382">    }</span>
+
+    /**
+     * Draws the player if it is not hidden
+     */
+    public void drawBombGuy() {
+<span class="fc bfc" id="L388" title="All 2 branches covered.">        if (!bombGuy.hidden) {</span>
+<span class="fc" id="L389">            bombGuy.draw(this);</span>
+        }
+<span class="fc" id="L391">    }</span>
+
+    /**
+     * Draws all game objects by calling tick(), then all subsidiary draw functions e.g drawMap(), drawBombGuy().
+     * The order of rendering is UI, map, bombs, enemies, explosions, player
+     */
+    public void draw() {
+<span class="fc" id="L398">        tick();</span>
+<span class="fc" id="L399">        drawUI();</span>
+<span class="fc" id="L400">        drawMap();</span>
+<span class="fc" id="L401">        drawBombs();</span>
+<span class="fc" id="L402">        drawEnemies();</span>
+<span class="fc" id="L403">        drawExplosions();</span>
+<span class="fc" id="L404">        drawBombGuy();</span>
+<span class="fc" id="L405">    }</span>
+
+    /**
+     * Called every time a key is pressed. Handles the arrow keys for player movement, and the space key to place bombs. Holding down a key does not execute an action multiple times
+     */
+    public void keyPressed() {
+
+<span class="fc bfc" id="L412" title="All 4 branches covered.">        if (keysHeldDown.get(keyCode) == null || !keysHeldDown.get(keyCode)) {</span>
+            
+<span class="fc" id="L414">            keysHeldDown.put(keyCode, true);</span>
+
+<span class="fc bfc" id="L416" title="All 2 branches covered.">            if (this.keyCode == 37) {</span>
+<span class="fc" id="L417">                this.bombGuy.pressLeft(map);</span>
+
+<span class="fc bfc" id="L419" title="All 2 branches covered.">            } else if (this.keyCode == 39) {</span>
+<span class="fc" id="L420">                this.bombGuy.pressRight(map);</span>
+
+<span class="fc bfc" id="L422" title="All 2 branches covered.">            } else if (this.keyCode == 38) {</span>
+<span class="fc" id="L423">                this.bombGuy.pressUp(map);</span>
+
+<span class="fc bfc" id="L425" title="All 2 branches covered.">            } else if (this.keyCode == 40) {</span>
+<span class="fc" id="L426">                this.bombGuy.pressDown(map);</span>
+
+<span class="pc bpc" id="L428" title="1 of 2 branches missed.">            } else if (this.keyCode == 32) {</span>
+<span class="fc" id="L429">                addBomb(bombGuy.x, bombGuy.y);</span>
+            }
+        }
+<span class="fc" id="L432">    }</span>
+
+    /**
+     * Called whenenver a key is released. Used to ensure that actions only execute twice when keys are pressed, let go, and pressed again.
+     */
+    public void keyReleased() {
+<span class="fc" id="L438">        keysHeldDown.put(keyCode, false);</span>
+<span class="fc" id="L439">    }</span>
+
+    /**
+     * Runs the game
+     */
+    public static void main(String[] args) {
+<span class="nc" id="L445">        PApplet.main(&quot;demolition.App&quot;);</span>
+<span class="nc" id="L446">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

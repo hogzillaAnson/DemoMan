@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Character.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Demolition</a> &gt; <a href="index.source.html" class="el_package">demolition</a> &gt; <span class="el_source">Character.java</span></div><h1>Character.java</h1><pre class="source lang-java linenums">package demolition;
+
+import processing.core.PImage;
+import java.util.*;
+
+/**
+ * Abstract class representing a character in the game, meaning player or enemy.
+ */
+public abstract class Character implements Drawable {
+
+    /** Number of seconds between animation frames */
+    public static final double SECONDSBETWEENFRAMES = 0.2;
+
+    /** Number of sprites in a character animation cycle, by default 4 */
+    public static final int FRAMES = 4;
+
+    /** Number of pixels by which to vertically offset the sprite by to align with the grid properly */
+    public static final int CHARACTEROFFSET = -15;
+
+    /** x coordinate */
+    public int x;
+
+    /** y coordinate */
+    public int y;
+
+    /** whether the character is dead */
+<span class="fc" id="L27">    public boolean dead = false;</span>
+    
+    /** whether the character is hidden */
+<span class="fc" id="L30">    public boolean hidden = false;</span>
+
+    /** the current character sprite */
+    public PImage sprite;
+
+    /** the direction in which the character is travelling */
+    public Direction direction;
+
+    /** Contains animation cycles for each cardinal direction */
+<span class="fc" id="L39">    public HashMap&lt;Direction, AnimationCycle&gt; animationCycles = new HashMap&lt;Direction, AnimationCycle&gt;();</span>
+
+    /**
+     * Constructor for Character.
+     * @param x x coordinate of the character
+     * @param y y coordinate of the character
+     */    
+<span class="fc" id="L46">    public Character(int x, int y) {</span>
+<span class="fc" id="L47">        this.x = x;</span>
+<span class="fc" id="L48">        this.y = y;</span>
+<span class="fc" id="L49">    }</span>
+
+    /**
+     * Sets the character's direction to a random direction other than the specified one.
+     * Useful for enemy AI
+     * @param except the direction that is excluded from being picked. If null, then no direction is excluded
+     */
+    protected void pickRandomDirection(Direction except) {
+<span class="fc" id="L57">        List&lt;Direction&gt; directions = new ArrayList&lt;Direction&gt;();</span>
+<span class="fc" id="L58">        Random rand = new Random();</span>
+<span class="fc" id="L59">        int randomNumber = rand.nextInt();</span>
+
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (except == null) {</span>
+<span class="fc" id="L62">            direction = Direction.values()[Math.abs(randomNumber) % Direction.values().length];</span>
+        }
+
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        for (Direction d : Direction.values()) {</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            if (!d.equals(except)) {</span>
+<span class="fc" id="L67">                directions.add(d);</span>
+            }
+        }
+
+<span class="fc" id="L71">        direction = directions.get(Math.abs(randomNumber) % directions.size());</span>
+<span class="fc" id="L72">    }</span>
+
+    /**
+     * Updates the animation cycle for the character depending on their direction
+     * Sets the character's sprite to the current sprite of the animation cycle
+     */
+    public void updateAnimation() {
+<span class="fc" id="L79">        animationCycles.get(direction).tick();</span>
+<span class="fc" id="L80">        sprite = animationCycles.get(direction).currentSprite;</span>
+<span class="fc" id="L81">    }</span>
+
+    /**
+     * Draws the sprite to the character's grid coordinates
+     * @param app the app calling the method
+     */
+    public void draw(App app) {
+<span class="fc" id="L88">        drawToGrid(sprite, x, y, CHARACTEROFFSET, app);</span>
+<span class="fc" id="L89">    }</span>
+
+    /**
+     * Determines whether the character is colliding with an ongoing explosion object
+     * @param app the app calling the method
+     * @return true if the character is in an explosion, false otherwise
+     */
+    public boolean inExplosion(App app) {
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        for (Explosion explosion : app.explosions) {</span>
+            try {
+<span class="pc bpc" id="L99" title="1 of 4 branches missed.">                if (!explosion.finished &amp;&amp; explosion.squares[Explosion.EXPLOSIONRADIUS + y - explosion.y][Explosion.EXPLOSIONRADIUS + x - explosion.x] != null) {</span>
+<span class="fc" id="L100">                    return true;</span>
+                }
+<span class="fc" id="L102">            } catch (ArrayIndexOutOfBoundsException e) {</span>
+<span class="fc" id="L103">                return false;</span>
+<span class="fc" id="L104">            }</span>
+<span class="fc" id="L105">        }</span>
+<span class="fc" id="L106">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,0 +1,13 @@
+{
+  "levels": [
+    {
+      "path": "winLevel.txt",
+      "time": 10
+    },
+    {
+      "path": "winLevel.txt",
+      "time": 9
+    }
+  ],
+  "lives": 1
+}

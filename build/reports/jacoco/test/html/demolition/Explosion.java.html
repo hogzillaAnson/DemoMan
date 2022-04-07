@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Explosion.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Demolition</a> &gt; <a href="index.source.html" class="el_package">demolition</a> &gt; <span class="el_source">Explosion.java</span></div><h1>Explosion.java</h1><pre class="source lang-java linenums">package demolition;
+
+import processing.core.PImage;
+
+/**
+ * Class representing an explosion in the game
+ */
+public class Explosion implements Drawable {
+
+    /** How many squares away from the centre the explosion extends to */
+    public static final int EXPLOSIONRADIUS = 2;
+
+    /** How long the explosion lasts on screen */
+    public static final double DURATION = 0.5;
+
+    /** x coordinate of explosion centre */
+    public int x;
+
+    /** y coordinate of explosion centre */
+    public int y;
+
+    /** Keeps track of how long has elapsed since the explosion started */
+    public int timer;
+
+    /** True if the explosion is finished. If true, the explosion won't be drawn or kill the player */
+    public boolean finished; 
+
+    /** 2D array of sprites defining the explosion graphics */
+<span class="fc" id="L29">    public PImage[][] squares = new PImage[2*EXPLOSIONRADIUS + 1][2*EXPLOSIONRADIUS + 1];</span>
+
+    /** true if the explosion graphic has been calculated already, in which case draw() will simply render the squares */
+    public boolean drawn; 
+
+    /**
+     * Constructor for Explosion
+     * @param x x coordinate of the centre of the explosion
+     * @param y y coordinate of the centre of the explosion
+     */
+<span class="fc" id="L39">    public Explosion(int x, int y) {</span>
+
+<span class="fc" id="L41">        this.x = x;</span>
+<span class="fc" id="L42">        this.y = y;</span>
+<span class="fc" id="L43">        this.timer = 0;</span>
+<span class="fc" id="L44">        this.finished = false;</span>
+<span class="fc" id="L45">        this.drawn = false;</span>
+
+<span class="fc" id="L47">    }</span>
+
+
+    /**
+     * Updates the explosion object. If the duration of the explosion has elapsed, marks the explosion as finished
+     * @param app the app
+     */
+    public void tick(App app) {
+
+<span class="fc" id="L56">        timer ++;</span>
+
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (timer &gt; DURATION * App.FPS) {</span>
+<span class="fc" id="L59">            finished = true;</span>
+<span class="fc" id="L60">            timer = 0;</span>
+        }
+
+<span class="fc" id="L63">    }</span>
+
+    /**
+     * Draws the vertical elements of the explosion (up and down) by recursively considering squares
+     * of increasing distance from the centre
+     * @param radius how many squares away from the centre to consider
+     * @param app the app
+     * @param direction which direction to look in (UP or DOWN).
+     */
+    public void drawVertical(int radius, App app, Direction direction) {
+
+        int sign;
+
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (direction == Direction.UP) {</span>
+<span class="fc" id="L77">            sign = -1;</span>
+        } else {
+<span class="fc" id="L79">            sign = 1;</span>
+        }
+
+<span class="pc bpc" id="L82" title="1 of 4 branches missed.">        if (app.map.mapTiles[y + sign * radius][x].tileType == TileType.Empty || app.map.mapTiles[y + sign * radius][x].tileType == TileType.Goal) {</span>
+
+<span class="pc bpc" id="L84" title="1 of 4 branches missed.">            if (radius == EXPLOSIONRADIUS || app.map.mapTiles[y + sign * (radius + 1)][x].tileType == TileType.Solid) {</span>
+
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">                if (sign == 1) {</span>
+<span class="fc" id="L87">                    squares[EXPLOSIONRADIUS + radius][EXPLOSIONRADIUS] = app.loadImage(&quot;src/main/resources/explosion/end_bottom.png&quot;);</span>
+                } else {
+<span class="nc" id="L89">                    squares[EXPLOSIONRADIUS - radius][EXPLOSIONRADIUS] = app.loadImage(&quot;src/main/resources/explosion/end_top.png&quot;);</span>
+                }
+
+            } else {
+
+<span class="fc" id="L94">                squares[EXPLOSIONRADIUS + sign * radius][EXPLOSIONRADIUS] = app.loadImage(&quot;src/main/resources/explosion/vertical.png&quot;);</span>
+<span class="fc" id="L95">                drawVertical(radius + 1, app, direction);</span>
+
+            }
+
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        } else if (app.map.mapTiles[y + sign * radius][x].tileType == TileType.Broken) {</span>
+
+<span class="fc" id="L101">            app.map.mapTiles[y + sign * radius][x].tileType = TileType.Empty;</span>
+
+<span class="fc bfc" id="L103" title="All 2 branches covered.">            if (sign == 1) {</span>
+<span class="fc" id="L104">                squares[EXPLOSIONRADIUS + radius][EXPLOSIONRADIUS] = app.loadImage(&quot;src/main/resources/explosion/end_bottom.png&quot;);</span>
+            } else {
+<span class="fc" id="L106">                squares[EXPLOSIONRADIUS - radius][EXPLOSIONRADIUS] = app.loadImage(&quot;src/main/resources/explosion/end_top.png&quot;);</span>
+            }
+        }
+<span class="fc" id="L109">    }</span>
+
+    /**
+     * Draws the horizontal elements of the explosion (left and right) by recursively considering squares
+     * of increasing distance from the centre
+     * @param radius how many squares away from the centre to consider
+     * @param app the app
+     * @param direction which direction to look in (LEFT or RIGHT).
+     */
+    public void drawHorizontal(int radius, App app, Direction direction) {
+
+        int sign;
+
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (direction == Direction.LEFT) {</span>
+<span class="fc" id="L123">            sign = -1;</span>
+        } else {
+<span class="fc" id="L125">            sign = 1;</span>
+        }
+
+<span class="fc bfc" id="L128" title="All 4 branches covered.">        if (app.map.mapTiles[y][x + sign * radius].tileType == TileType.Empty || app.map.mapTiles[y][x + sign * radius].tileType == TileType.Goal) {</span>
+
+<span class="fc bfc" id="L130" title="All 4 branches covered.">            if (radius == EXPLOSIONRADIUS || app.map.mapTiles[y][x + sign * (radius + 1)].tileType == TileType.Solid) {                </span>
+
+<span class="fc bfc" id="L132" title="All 2 branches covered.">                if (sign == 1) {</span>
+<span class="fc" id="L133">                    squares[EXPLOSIONRADIUS][EXPLOSIONRADIUS + radius] = app.loadImage(&quot;src/main/resources/explosion/end_right.png&quot;);</span>
+                } else {
+<span class="fc" id="L135">                    squares[EXPLOSIONRADIUS][EXPLOSIONRADIUS - radius] = app.loadImage(&quot;src/main/resources/explosion/end_left.png&quot;);</span>
+                }
+
+            } else {
+
+<span class="fc" id="L140">                squares[EXPLOSIONRADIUS][EXPLOSIONRADIUS + sign * radius] = app.loadImage(&quot;src/main/resources/explosion/horizontal.png&quot;);</span>
+<span class="fc" id="L141">                drawHorizontal(radius + 1, app, direction);</span>
+
+            }
+
+<span class="fc bfc" id="L145" title="All 2 branches covered.">        } else if (app.map.mapTiles[y][x + sign * radius].tileType == TileType.Broken) {</span>
+
+<span class="fc" id="L147">            app.map.mapTiles[y][x + sign * radius].tileType = TileType.Empty;</span>
+
+<span class="fc bfc" id="L149" title="All 2 branches covered.">            if (sign == 1) {</span>
+<span class="fc" id="L150">                squares[EXPLOSIONRADIUS][EXPLOSIONRADIUS + radius] = app.loadImage(&quot;src/main/resources/explosion/end_right.png&quot;);</span>
+            } else {
+<span class="fc" id="L152">                squares[EXPLOSIONRADIUS][EXPLOSIONRADIUS - radius] = app.loadImage(&quot;src/main/resources/explosion/end_left.png&quot;);</span>
+            }
+        }
+<span class="fc" id="L155">    }</span>
+
+    /**
+     * Draws the explosion to the screen by calling the drawVertical() and drawHorizontal() methods.
+     * 
+     * @param app the app
+     */
+    public void draw(App app) {
+        
+<span class="fc bfc" id="L164" title="All 2 branches covered.">        if (!drawn) {</span>
+<span class="fc" id="L165">            squares[EXPLOSIONRADIUS][EXPLOSIONRADIUS] = app.loadImage(&quot;src/main/resources/explosion/centre.png&quot;);</span>
+<span class="fc" id="L166">            drawVertical(1, app, Direction.UP);</span>
+<span class="fc" id="L167">            drawVertical(1, app, Direction.DOWN);</span>
+<span class="fc" id="L168">            drawHorizontal(1, app, Direction.LEFT);</span>
+<span class="fc" id="L169">            drawHorizontal(1, app, Direction.RIGHT);</span>
+<span class="fc" id="L170">            drawn = true;</span>
+        } 
+
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        for (int i = 0; i &lt;= 2*EXPLOSIONRADIUS; i ++) {</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">            if (squares[i][2] != null) {</span>
+<span class="fc" id="L175">                drawToGrid(squares[i][2], x + 2 - EXPLOSIONRADIUS, y + i - EXPLOSIONRADIUS, 0, app);</span>
+            }
+<span class="fc bfc" id="L177" title="All 2 branches covered.">            if (squares[2][i] != null) {</span>
+<span class="fc" id="L178">                drawToGrid(squares[2][i], x + i - EXPLOSIONRADIUS, y + 2 - EXPLOSIONRADIUS, 0, app);</span>
+            }
+        }
+<span class="fc" id="L181">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

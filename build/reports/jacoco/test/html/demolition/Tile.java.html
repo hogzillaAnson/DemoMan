@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Tile.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Demolition</a> &gt; <a href="index.source.html" class="el_package">demolition</a> &gt; <span class="el_source">Tile.java</span></div><h1>Tile.java</h1><pre class="source lang-java linenums">package demolition;
+import processing.core.PImage;
+
+/**
+* Represents the individual tiles (squares) that make up the map.
+*/
+public class Tile {
+
+    /** TileType of a particular tile e.g Solid, Broken */
+    public TileType tileType;
+
+    /** How big in pixels an individual tile is */
+    public static final int TILESIZE = 32;
+
+    /** 
+     * Tile constructor 
+     * @param tileType the tileType of a particular square
+    */
+<span class="fc" id="L19">    public Tile(TileType tileType) {</span>
+<span class="fc" id="L20">        this.tileType = tileType;</span>
+<span class="fc" id="L21">    }</span>
+
+    /**
+     * Returns the sprite associated with the tile type
+     * @param app the app
+     * @return the PImage graphic
+     */
+    public PImage tileGraphic(App app) {        
+<span class="fc" id="L29">        return app.images.get(tileType.string);</span>
+    }
+
+    /**
+     * Returns the tile type associated with the inputted character from a map file
+     * e.g 'W' becomes a Solid tile while ' ' becomes an empty one
+     * @param c character to convert into a tile type
+     * @return the tile type (Solid, Broken, Empty, Goal) associated with the character
+     */
+    public static TileType charToTile(char c) {
+
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (c == 'W') {</span>
+<span class="fc" id="L41">            return TileType.Solid;</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        } else if (c == 'B') {</span>
+<span class="fc" id="L43">            return TileType.Broken;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        } else if (c == 'G') {</span>
+<span class="fc" id="L45">            return TileType.Goal;</span>
+        }
+
+<span class="fc" id="L48">        return TileType.Empty;</span>
+    }
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

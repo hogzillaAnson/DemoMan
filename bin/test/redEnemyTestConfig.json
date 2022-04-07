@@ -1,0 +1,9 @@
+{
+  "levels": [
+    {
+      "path": "src/test/resources/redEnemyTestLevel.txt",
+      "time": 180
+    }
+  ],
+  "lives": 1
+}

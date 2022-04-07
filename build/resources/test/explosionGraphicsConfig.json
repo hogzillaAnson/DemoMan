@@ -1,0 +1,9 @@
+{
+  "levels": [
+    {
+      "path": "src/test/resources/explosionGraphicsMap.txt",
+      "time": 180
+    }
+  ],
+  "lives": 3
+}
